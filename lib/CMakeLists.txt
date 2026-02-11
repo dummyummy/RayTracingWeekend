@@ -1,0 +1,8 @@
+file(GLOB_RECURSE LIB_SRC_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} CONFIGURE_DEPENDS *.cpp)
+message("Find lib src files:")
+foreach(src_file ${LIB_SRC_FILES})
+    message("${src_file}")
+endforeach()
+add_library(RayTracingWeekendLib ${LIB_SRC_FILES})
+target_include_directories(RayTracingWeekendLib PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_compile_features(RayTracingWeekendLib PUBLIC cxx_std_17)
