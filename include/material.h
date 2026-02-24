@@ -11,7 +11,9 @@ class Material
   public:
     virtual ~Material() = default;
     Material() = delete;
-    Material(const Vec3 &emission) : emission(emission) {}
+    Material(const Vec3 &emission) : emission(emission)
+    {
+    }
 
     Vec3 get_emission() const
     {

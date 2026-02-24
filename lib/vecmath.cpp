@@ -61,28 +61,9 @@ Vec3 unit_vector(const Vec3 &v)
     return v / v.length();
 }
 
-Vec3 Vec3::uniform_sample_hemisphere(const Vec3 &normal, double u, double v, double &p)
+Vec3 reflect(const Vec3 &v, const Vec3 &n)
 {
-    double cos_theta = v;
-    double sin_theta = std::sqrt(1.0 - v * v);
-    double phi = two_pi * u;
-    auto dir = Vec3(sin_theta * cos(phi), sin_theta * sin(phi), cos_theta);
-    Vec3 b1, b2;
-    branchlessONB(normal, b1, b2);
-    p = inv_two_pi;
-    return dir.x() * b1 + dir.y() * b2 + dir.z() * normal;
-}
-
-Vec3 Vec3::cosine_sample_hemisphere(const Vec3 &normal, double u, double v, double &p)
-{
-    double cos_theta = std::sqrt(v);
-    double sin_theta = std::sqrt(1.0 - v);
-    double phi = two_pi * u;
-    auto dir = Vec3(sin_theta * cos(phi), sin_theta * sin(phi), cos_theta);
-    Vec3 b1, b2;
-    branchlessONB(normal, b1, b2);
-    p = cos_theta * inv_pi;
-    return dir.x() * b1 + dir.y() * b2 + dir.z() * normal;
+    return v - 2 * dot(v, n) * n;
 }
 
 // https://graphics.pixar.com/library/OrthonormalB/paper.pdf
@@ -93,4 +74,12 @@ void Vec3::branchlessONB(const Vec3 &n, Vec3 &b1, Vec3 &b2)
     const float b = n.x() * n.y() * a;
     b1 = Vec3(1.0f + sign * n.x() * n.x() * a, sign * b, -sign * n.x());
     b2 = Vec3(b, sign + n.y() * n.y() * a, -n.y());
+}
+
+Vec3 Vec3::spherical_to_cartesian(double cos_theta, double phi)
+{
+    double sin_theta = std::sqrt(1.0 - sqr(cos_theta));
+    double cos_phi = cos(phi);
+    double sin_phi = sin(phi);
+    return Vec3(cos_phi * sin_theta, sin_phi * sin_theta, cos_theta);
 }

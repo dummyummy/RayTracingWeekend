@@ -61,7 +61,7 @@ class Camera
         }
 
         int num_pixels = image_width * image_height;
-        for (int i = 0; i < image_height; ++i) // row
+        for (int i = 0; i < image_height; ++i)    // row
             for (int j = 0; j < image_width; ++j) // column
             {
                 auto aa_color = Color(0.0, 0.0, 0.0);
@@ -75,11 +75,9 @@ class Camera
                 aa_color /= (double)num_samples;
                 auto clamp_interval = Interval(0.0, 1.0);
                 double gamma = 1.0 / 2.2;
-                auto clamped_color = Color(
-                    std::pow(clamp_interval.clamp(aa_color.r()), gamma), 
-                    std::pow(clamp_interval.clamp(aa_color.g()), gamma),
-                    std::pow(clamp_interval.clamp(aa_color.b()), gamma)
-                );
+                auto clamped_color = Color(std::pow(clamp_interval.clamp(aa_color.r()), gamma),
+                                           std::pow(clamp_interval.clamp(aa_color.g()), gamma),
+                                           std::pow(clamp_interval.clamp(aa_color.b()), gamma));
                 auto uint8_color = clamped_color.to_uint8_array();
                 // Color tonemapped_color = Color(
                 //     aa_color.r() / (aa_color.r() + 1.0),
@@ -135,14 +133,13 @@ class Camera
             Color f_r;
             double p;
 
+            radiance += throughput * rec.mat->get_emission();
+
             if (!rec.mat->scatter(ray, rec, ro, f_r, p) || p <= 0.0)
                 break;
 
-            Vec3 weight = f_r * std::max(dot(rec.normal, ro.unit_direction()), 0.0) / p; // BRDF * cos(theta) / p
+            Vec3 weight = f_r * std::abs(dot(rec.normal, ro.unit_direction())) / p; // BRDF * cos(theta) / p
             throughput = throughput * weight;
-
-            // TODO: emission surface
-            radiance += throughput * rec.mat->get_emission();
 
             // Russian Roulette
             if (b >= 3)

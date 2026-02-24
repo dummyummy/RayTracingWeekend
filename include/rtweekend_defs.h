@@ -57,3 +57,15 @@ template <> inline double lerp(double u, double v, double w)
 {
     return u * (1 - w) + v * w;
 }
+
+template <typename T> T sqr(T u) = delete;
+
+template <> inline float sqr(float u)
+{
+    return u * u;
+}
+
+template <> inline double sqr(double u)
+{
+    return u * u;
+}

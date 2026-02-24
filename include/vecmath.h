@@ -96,9 +96,8 @@ class Vec3
     friend Vec3 cross(const Vec3 &u, const Vec3 &v);
     friend Vec3 unit_vector(const Vec3 &v);
 
-    static Vec3 uniform_sample_hemisphere(const Vec3 &normal, double u, double v, double &p);
-    static Vec3 cosine_sample_hemisphere(const Vec3 &normal, double u, double v, double &p);
     static void branchlessONB(const Vec3 &n, Vec3 &b1, Vec3 &b2);
+    static Vec3 spherical_to_cartesian(double cos_theta, double phi);
 };
 
 // point3 is just an alias for Vec3, but useful for geometric clarity in the
@@ -145,3 +144,4 @@ double dot(const Vec3 &u, const Vec3 &v);
 Vec3 cross(const Vec3 &u, const Vec3 &v);
 Vec3 lerp(const Vec3 &u, const Vec3 &v, double t);
 Vec3 unit_vector(const Vec3 &v);
+Vec3 reflect(const Vec3 &v, const Vec3 &n);
