@@ -11,6 +11,8 @@ class Material
   public:
     virtual ~Material() = default;
     Material() = delete;
+    Material(const Material &) = default;
+    Material &operator=(const Material &) = default;
     Material(const Vec3 &emission) : emission(emission)
     {
     }

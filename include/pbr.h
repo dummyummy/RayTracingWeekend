@@ -1,3 +1,5 @@
+#pragma once
+
 #include "rtweekend.h"
 #include "rtweekend_defs.h"
 #include "vecmath.h"
@@ -31,9 +33,9 @@ inline Color CalculateSheenColor(const Color &tint_color, double sheen_tint)
 
 inline double SchlickFresnel(double cos_theta_d)
 {
-    cos_theta_d = std::clamp(cos_theta_d, 0.0, 1.0);
-    float cos_theta_d2 = cos_theta_d * cos_theta_d;
-    return cos_theta_d2 * cos_theta_d2 * cos_theta_d;
+    double m = std::clamp(1.0 - cos_theta_d, 0.0, 1.0);
+    float m2 = m * m;
+    return m2 * m2 * m;
 }
 
 inline double GTR1(double NdotH, double a)
