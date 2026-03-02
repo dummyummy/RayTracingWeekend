@@ -9,6 +9,8 @@
 
 namespace PBR
 {
+const double min_denom = std::numeric_limits<double>::epsilon();
+
 inline double Luminance(const Color &color)
 {
     return dot(Vec3(0.2126, 0.7152, 0.0722), color);
@@ -113,7 +115,7 @@ inline Vec3 sample_GTR1(const Vec3 &normal, double u, double v, double &pdf, dou
 {
     double phi = two_pi * u;
     double a2 = sqr(a);
-    double denom = std::max(std::numeric_limits<double>::epsilon(), 1.0 - a2);
+    double denom = std::max(min_denom, 1.0 - a2);
     double cos_theta = std::min(std::sqrt((1.0 - std::pow(a2, 1.0 - v)) / denom), 1.0);
     Vec3 dir = Vec3::spherical_to_cartesian(cos_theta, phi);
     Vec3 h = dir.x() * b1 + dir.y() * b2 + dir.z() * normal;
@@ -130,7 +132,7 @@ inline Vec3 sample_GTR2(const Vec3 &normal, double u, double v, double &pdf, dou
 {
     double phi = two_pi * u;
     double a2 = sqr(a);
-    double denom = std::max(std::numeric_limits<double>::epsilon(), 1.0 + (a2 - 1) * v);
+    double denom = std::max(min_denom, 1.0 + (a2 - 1) * v);
     double cos_theta = std::min(std::sqrt((1.0 - v) / denom), 1.0);
     Vec3 dir = Vec3::spherical_to_cartesian(cos_theta, phi);
     Vec3 h = dir.x() * b1 + dir.y() * b2 + dir.z() * normal;
@@ -148,7 +150,7 @@ inline Vec3 sample_GTR2_aniso(const Vec3 &normal, double u, double v, double &pd
 {
     double px = ax * std::cos(two_pi * u);
     double py = ay * std::sin(two_pi * u);
-    double denom = std::max(std::numeric_limits<double>::epsilon(), 1.0 - v);
+    double denom = std::max(min_denom, 1.0 - v);
     Vec3 h_unorm = std::sqrt(v / denom) * (px * b1 + py * b2) + normal;
     Vec3 h = unit_vector(h_unorm);
     pdf = sample_GTR2_aniso_pdf(dot(h, normal), dot(h, b1), dot(h, b2), ax, ay);

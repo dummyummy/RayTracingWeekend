@@ -70,10 +70,10 @@ int main(int argc, char *argv[])
         new PrincipledBRDF(
             Vec3(0.0, 0.0, 0.0), 
             Vec3(0.8, 0.1, 0.1), 
-            0.9, 
             0.0, 
-            0.5, 
-            0.2, 
+            0.0, 
+            0.0, 
+            1.0, 
             0.0, 
             0.0, 
             0.0, 
@@ -90,9 +90,26 @@ int main(int argc, char *argv[])
             0.9, 
             0.0, 
             0.5, 
+            0.4, 
+            0.0, 
+            0.0, 
+            0.0, 
+            0.0, 
+            0.0, 
+            0.0
+        )
+    );
+
+    std::shared_ptr<Material> principled3 = std::shared_ptr<PrincipledBRDF>(
+        new PrincipledBRDF(
+            Vec3(0.0, 0.0, 0.0), 
+            Vec3(0.1, 0.8, 0.4), 
+            1.0, 
+            0.0, 
+            0.5, 
             0.1, 
             0.0, 
-            1.0, 
+            0.0, 
             0.0, 
             0.0, 
             0.0, 
@@ -102,9 +119,8 @@ int main(int argc, char *argv[])
 
     HittableList scene;
     scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(-1.0, 0.0, -1.0), 0.5, principled1)));
-    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(-1.0, 0.0, -2.0), 0.5, lambertian)));
     scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(0.0, 0.5, -2.0), 1.0, principled2)));
-    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(1.0, 0.0, -3.0), 0.5, lambertian)));
+    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(1.0, 0.0, -1.0), 0.5, principled3)));
     scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(0.0, -1000.5, -2.0), 1000.0, lambertian)));
 
     cam.initialize();

@@ -6,3 +6,7 @@ endforeach()
 add_library(RayTracingWeekendLib ${LIB_SRC_FILES})
 target_include_directories(RayTracingWeekendLib PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_compile_features(RayTracingWeekendLib PUBLIC cxx_std_17)
+target_compile_options(RayTracingWeekendLib PRIVATE 
+    $<$<CONFIG:Release>:-O2>
+    $<$<CONFIG:Debug>:-g -O0>
+)

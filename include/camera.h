@@ -123,7 +123,7 @@ class Camera
             {
                 double a = 0.5 * (unit_vector(ray.direction()).y() + 1.0);
                 Color sky_color = (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
-                // // White furnace test
+                // White furnace test
                 // Color sky_color = Color(1.0, 1.0, 1.0);
                 radiance += throughput * sky_color;
                 break;
