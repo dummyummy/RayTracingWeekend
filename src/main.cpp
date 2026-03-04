@@ -5,13 +5,14 @@
 
 #include "camera.h"
 #include "hittable_list.h"
+#include "materials/glass.h"
+#include "materials/lambertian.h"
+#include "materials/light_mat.h"
+#include "materials/material.h"
+#include "materials/principled_brdf.h"
 #include "rtweekend.h"
 #include "sphere.h"
-#include "materials/material.h"
-#include "materials/lambertian.h"
-#include "materials/principled_brdf.h"
-#include "materials/light_mat.h"
-#include "materials/glass.h"
+
 
 int main(int argc, char *argv[])
 {
@@ -41,10 +42,17 @@ int main(int argc, char *argv[])
     cam.aspect_ratio = aspect_ratio;
     cam.image_width = image_width;
     cam.num_samples = image_spp;
-    cam.lookat = Vec3(0.0, 0.0, 0.0);
-    cam.lookfrom = Vec3(-0.5, 4.0, -1.0);
+    cam.lookat = Vec3(0.0, 0.5, 0.0);
+    cam.lookfrom = Vec3(0.0, 1.0, -5.0);
     cam.enable_skybox = true;
-    cam.fov = 60.0;
+    cam.skybox_color = [](Vec3 dir) {
+        // double a = 0.5 * (unit_vector(dir).y() + 1.0);
+        // return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
+        return Color(0.08, 0.095, 0.1);
+    };
+    cam.fov = 30.0;
+    cam.defocus_angle = 5.0;
+    cam.focus_dist = 5.0;
 
     indicators::ProgressBar bar{
         indicators::option::BarWidth{50},
@@ -72,78 +80,26 @@ int main(int argc, char *argv[])
     std::shared_ptr<Material> glass_mat = std::make_shared<Glass>(1.33);
 
     std::shared_ptr<Material> principled_diffuse_grey = std::shared_ptr<PrincipledBRDF>(
-        new PrincipledBRDF(
-            Vec3(0.0, 0.0, 0.0), 
-            Vec3(0.5, 0.5, 0.5), 
-            0.0, 
-            0.0, 
-            0.0, 
-            1.0, 
-            0.0, 
-            0.0, 
-            0.0, 
-            0.0, 
-            0.0, 
-            0.0
-        )
-    );
+        new PrincipledBRDF(Vec3(0.0, 0.0, 0.0), Vec3(0.5, 0.5, 0.5), 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 
     std::shared_ptr<Material> principled_diffuse_red = std::shared_ptr<PrincipledBRDF>(
-        new PrincipledBRDF(
-            Vec3(0.0, 0.0, 0.0), 
-            Vec3(0.9, 0.1, 0.1), 
-            0.0, 
-            0.0, 
-            0.0, 
-            1.0, 
-            0.0, 
-            0.0, 
-            0.0, 
-            0.0, 
-            0.0, 
-            0.0
-        )
-    );
+        new PrincipledBRDF(Vec3(0.0, 0.0, 0.0), Vec3(0.9, 0.1, 0.1), 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+
+    std::shared_ptr<Material> principled_diffuse_clearcoat = std::shared_ptr<PrincipledBRDF>(
+        new PrincipledBRDF(Vec3(0.0, 0.0, 0.0), Vec3(0.9, 0.1, 0.1), 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0));
 
     std::shared_ptr<Material> principled_glossy = std::shared_ptr<PrincipledBRDF>(
-        new PrincipledBRDF(
-            Vec3(0.0, 0.0, 0.0), 
-            Vec3(0.1, 0.8, 0.1), 
-            0.9, 
-            0.0, 
-            0.5, 
-            0.4, 
-            0.0, 
-            0.0, 
-            0.0, 
-            0.0, 
-            0.0, 
-            0.0
-        )
-    );
+        new PrincipledBRDF(Vec3(0.0, 0.0, 0.0), Vec3(0.1, 0.8, 0.1), 0.9, 0.0, 0.5, 0.4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 
     std::shared_ptr<Material> principled_metal = std::shared_ptr<PrincipledBRDF>(
-        new PrincipledBRDF(
-            Vec3(0.0, 0.0, 0.0), 
-            Vec3(0.1, 0.8, 0.4), 
-            1.0, 
-            0.0, 
-            0.5, 
-            0.0, 
-            0.0, 
-            0.0, 
-            0.0, 
-            0.0, 
-            0.0, 
-            0.0
-        )
-    );
+        new PrincipledBRDF(Vec3(0.0, 0.0, 0.0), Vec3(0.1, 0.8, 0.4), 1.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 
     HittableList scene;
-    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(-1.0, 0.5, 0.0), 0.5, principled_metal)));
-    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(0.0, 1.0, 1.0), 1.0, principled_diffuse_red)));
-    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(1.0, 0.5, 0.0), 0.5, glass_mat)));
-    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(-0.3, 1.5, -0.2), 0.3, glass_mat)));
+    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(-1.5, 0.5, 0.0), 0.5, principled_glossy)));
+    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(0.0, 1.0, 1.0), 1.0, principled_diffuse_clearcoat)));
+    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(1.5, 0.5, 0.0), 0.5, glass_mat)));
+    // scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(-0.3, 1.5, -0.2), 0.3, glass_mat)));
+    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(0.0, 1.8, 3.0), 1.5, light_mat)));
     scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(0.0, -5000.0, 0.0), 5000.0, principled_diffuse_grey)));
 
     cam.initialize();

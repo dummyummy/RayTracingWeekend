@@ -5,6 +5,8 @@
 #include "../rtweekend_defs.h"
 #include "material.h"
 #include "pbr.h"
+#include "../sampling.h"
+
 
 class PrincipledBRDF : public Material
 {
@@ -53,8 +55,6 @@ class PrincipledBRDF : public Material
         double diffuse_prob = PBR::Luminance(baseColor * (Vec3::one() - F_approx)) * (1.0 - metallic);
         double specular_prob = PBR::Luminance(F_approx);
         double clearcoat_prob = clearcoat * lerp(0.04, 1.0, FN);
-        // double specular_prob = 0.0;
-        // double clearcoat_prob = 0.0;
         double prob_sum = diffuse_prob + specular_prob + clearcoat_prob;
         diffuse_prob /= prob_sum;
         specular_prob /= prob_sum;
@@ -67,7 +67,7 @@ class PrincipledBRDF : public Material
 
         if (r < diffuse_prob)
         {
-            L = PBR::cosine_sample_hemisphere(N, u, v, dummy_pdf, b1, b2);
+            L = cosine_sample_hemisphere(N, u, v, dummy_pdf, b1, b2);
             H = unit_vector(V + L);
         }
         else if (r < diffuse_prob + specular_prob)
@@ -88,7 +88,7 @@ class PrincipledBRDF : public Material
         double LdotH = dot(L, H);
         double NdotH = dot(N, H);
 
-        double pdf_diffuse = PBR::cosine_sample_hemisphere_pdf(NdotL);
+        double pdf_diffuse = cosine_sample_hemisphere_pdf(NdotL);
         double pdf_specular = PBR::sample_GTR2_aniso_pdf(NdotH, dot(H, b1), dot(H, b2), ax, ay);
         double pdf_clearcoat = PBR::sample_GTR1_pdf(NdotH, a_clearcoat);
         double four_LdotH_safe = 4.0 * std::max(LdotH, min_denom);

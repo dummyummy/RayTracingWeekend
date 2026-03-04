@@ -8,6 +8,7 @@
 #include "materials/material.h"
 #include "rtweekend.h"
 #include "rtweekend_defs.h"
+#include "sampling.h"
 #include "vecmath.h"
 
 class Camera
@@ -22,7 +23,10 @@ class Camera
     Point3 lookfrom = Point3(0.0, 0.0, 0.0);
     Point3 lookat = Point3(0.0, 0.0, -1.0);
     Vec3 vup = Vec3(0.0, 1.0, 0.0);
+    double defocus_angle = 0.0;
+    double focus_dist = 2.0;
     bool enable_skybox = true;
+    std::function<Color(Vec3)> skybox_color = nullptr;
 
     std::function<void(double)> progress_callback = nullptr;
     Camera() = default;
@@ -47,18 +51,21 @@ class Camera
 
     void initialize()
     {
-        focal_length = (lookat - lookfrom).length();
         w = unit_vector(lookat - lookfrom);
         u = unit_vector(cross(vup, w)); // left hand frame
         v = cross(w, u);
         image_height = static_cast<int>(image_width / aspect_ratio);
-        viewport_height = 2.0 * std::tan(degrees_to_radians(fov) / 2.0) * focal_length;
+        viewport_height = 2.0 * std::tan(degrees_to_radians(fov) / 2.0) * focus_dist;
         viewport_width = viewport_height * ((double)image_width / image_height);
         viewport_u = viewport_width * u;
         viewport_v = viewport_height * (-v);
-        viewport_upper_left = lookfrom + (focal_length * w) - viewport_u / 2.0 - viewport_v / 2.0;
+        viewport_upper_left = lookfrom + (focus_dist * w) - viewport_u / 2.0 - viewport_v / 2.0;
         pixel_delta_u = viewport_u / image_width;
         pixel_delta_v = viewport_v / image_height;
+
+        double defocus_radius = focus_dist * std::tan(degrees_to_radians(defocus_angle / 2.0));
+        defocus_disk_u = defocus_radius * u;
+        defocus_disk_v = defocus_radius * v;
     }
 
     void render(const Hittable &scene, uint8_t *data)
@@ -118,7 +125,8 @@ class Camera
     Vec3 pixel_delta_u;
     Vec3 pixel_delta_v;
     Vec3 u, v, w;
-    double focal_length;
+    Vec3 defocus_disk_u;
+    Vec3 defocus_disk_v;
 
     Color ray_color(Ray ray, const Hittable &scene)
     {
@@ -131,14 +139,13 @@ class Camera
         {
             if (!scene.hit(ray, Interval(epsilon, infinity), rec))
             {
-                double a = 0.5 * (unit_vector(ray.direction()).y() + 1.0);
 
                 // White furnace test
                 // Color sky_color = Color(1.0, 1.0, 1.0);
 
                 Color sky_color;
                 if (enable_skybox)
-                    sky_color = (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
+                    sky_color = skybox_color(ray.direction());
                 else
                     sky_color = Color::zero();
 
@@ -182,6 +189,9 @@ class Camera
         auto pixel_offset = Hammersley(s, num_samples);
         auto pixel_center =
             viewport_upper_left + (j + pixel_offset.second) * pixel_delta_u + (i + pixel_offset.first) * pixel_delta_v;
-        return Ray(lookfrom, pixel_center - lookfrom);
+        double dummy_p;
+        auto ray_origin = defocus_angle <= 0.0 ? lookfrom :
+            lookfrom + uniform_sample_disk(random_double(), random_double(), dummy_p, defocus_disk_u, defocus_disk_v);
+        return Ray(ray_origin, pixel_center - ray_origin);
     }
 };

@@ -73,36 +73,6 @@ inline double SmithG_GGX_aniso(double NdotV, double VdotX, double VdotY, double 
 
 /*** Sampling ***/
 
-inline double uniform_sample_hemisphere_pdf(double cos_theta)
-{
-    return inv_two_pi;
-}
-
-inline Vec3 uniform_sample_hemisphere(const Vec3 &normal, double u, double v, double &p, const Vec3 &b1, const Vec3 &b2)
-{
-    double cos_theta = v;
-    double phi = two_pi * u;
-    Vec3 dir = Vec3::spherical_to_cartesian(cos_theta, phi);
-    Vec3 l = dir.x() * b1 + dir.y() * b2 + dir.z() * normal;
-    p = uniform_sample_hemisphere_pdf(cos_theta);
-    return l;
-}
-
-inline double cosine_sample_hemisphere_pdf(double cos_theta)
-{
-    return cos_theta * inv_pi;
-}
-
-inline Vec3 cosine_sample_hemisphere(const Vec3 &normal, double u, double v, double &p, const Vec3 &b1, const Vec3 &b2)
-{
-    double cos_theta = std::sqrt(v);
-    double phi = two_pi * u;
-    Vec3 dir = Vec3::spherical_to_cartesian(cos_theta, phi);
-    Vec3 l = dir.x() * b1 + dir.y() * b2 + dir.z() * normal;
-    p = cosine_sample_hemisphere_pdf(cos_theta);
-    return l;
-}
-
 inline double sample_GTR1_pdf(double NdotH, double a)
 {
     return GTR1(NdotH, a) * NdotH;
