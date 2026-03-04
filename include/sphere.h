@@ -1,7 +1,7 @@
 #pragma once
 
 #include "hittable.h"
-#include "material.h"
+#include "materials/material.h"
 #include <memory>
 
 class Sphere : public Hittable

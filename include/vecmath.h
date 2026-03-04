@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <iostream>
 
+#include "rtweekend_defs.h"
+
 class Vec3
 {
   private:
@@ -85,6 +87,11 @@ class Vec3
         return Vec3(0.0, 0.0, 0.0);
     }
 
+    bool near_zero() const
+    {
+        return std::fabs(e[0]) < epsilon && std::fabs(e[1]) < epsilon && std::fabs(e[2]) < epsilon;
+    }
+
     friend std::ostream &operator<<(std::ostream &out, const Vec3 &v);
     friend Vec3 operator+(const Vec3 &u, const Vec3 &v);
     friend Vec3 operator-(const Vec3 &u, const Vec3 &v);
@@ -145,3 +152,4 @@ Vec3 cross(const Vec3 &u, const Vec3 &v);
 Vec3 lerp(const Vec3 &u, const Vec3 &v, double t);
 Vec3 unit_vector(const Vec3 &v);
 Vec3 reflect(const Vec3 &v, const Vec3 &n);
+Vec3 refract(const Vec3 &v, const Vec3 &n, double ior);

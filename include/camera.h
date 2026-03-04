@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "hittable.h"
-#include "material.h"
+#include "materials/material.h"
 #include "rtweekend.h"
 #include "rtweekend_defs.h"
 #include "vecmath.h"
@@ -15,11 +15,15 @@ class Camera
   public:
     double aspect_ratio = 16.0 / 9.0;
     int image_width = 256;
-    double focal_length = 1.0;
     double fov = 60.0;
     int channel = 3;
     int num_samples = 16;
     int max_trace_depth = 50;
+    Point3 lookfrom = Point3(0.0, 0.0, 0.0);
+    Point3 lookat = Point3(0.0, 0.0, -1.0);
+    Vec3 vup = Vec3(0.0, 1.0, 0.0);
+    bool enable_skybox = true;
+
     std::function<void(double)> progress_callback = nullptr;
     Camera() = default;
     ~Camera() = default;
@@ -43,12 +47,16 @@ class Camera
 
     void initialize()
     {
+        focal_length = (lookat - lookfrom).length();
+        w = unit_vector(lookat - lookfrom);
+        u = unit_vector(cross(vup, w)); // left hand frame
+        v = cross(w, u);
         image_height = static_cast<int>(image_width / aspect_ratio);
         viewport_height = 2.0 * std::tan(degrees_to_radians(fov) / 2.0) * focal_length;
         viewport_width = viewport_height * ((double)image_width / image_height);
-        viewport_u = Vec3(viewport_width, 0.0, 0.0);
-        viewport_v = Vec3(0.0, -viewport_height, 0.0);
-        viewport_upper_left = camera_center - Vec3(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
+        viewport_u = viewport_width * u;
+        viewport_v = viewport_height * (-v);
+        viewport_upper_left = lookfrom + (focal_length * w) - viewport_u / 2.0 - viewport_v / 2.0;
         pixel_delta_u = viewport_u / image_width;
         pixel_delta_v = viewport_v / image_height;
     }
@@ -79,6 +87,7 @@ class Camera
                                            std::pow(clamp_interval.clamp(aa_color.g()), gamma),
                                            std::pow(clamp_interval.clamp(aa_color.b()), gamma));
                 auto uint8_color = clamped_color.to_uint8_array();
+
                 // Color tonemapped_color = Color(
                 //     aa_color.r() / (aa_color.r() + 1.0),
                 //     aa_color.g() / (aa_color.g() + 1.0),
@@ -103,12 +112,13 @@ class Camera
     int image_height = -1;
     double viewport_height = 2.0;
     double viewport_width = viewport_height * ((double)image_width / image_height);
-    Vec3 camera_center = Point3(0.0, 0.0, 0.0);
     Vec3 viewport_u;
     Vec3 viewport_v;
     Vec3 viewport_upper_left;
     Vec3 pixel_delta_u;
     Vec3 pixel_delta_v;
+    Vec3 u, v, w;
+    double focal_length;
 
     Color ray_color(Ray ray, const Hittable &scene)
     {
@@ -122,9 +132,16 @@ class Camera
             if (!scene.hit(ray, Interval(epsilon, infinity), rec))
             {
                 double a = 0.5 * (unit_vector(ray.direction()).y() + 1.0);
-                Color sky_color = (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
+
                 // White furnace test
                 // Color sky_color = Color(1.0, 1.0, 1.0);
+
+                Color sky_color;
+                if (enable_skybox)
+                    sky_color = (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
+                else
+                    sky_color = Color::zero();
+
                 radiance += throughput * sky_color;
                 break;
             }
@@ -138,7 +155,7 @@ class Camera
             if (!rec.mat->scatter(ray, rec, ro, f_r, p) || p <= 0.0)
                 break;
 
-            Vec3 weight = f_r * std::abs(dot(rec.normal, ro.unit_direction())) / p; // BRDF * cos(theta) / p
+            Vec3 weight = f_r / p; // BRDF * cos(theta) / p
             throughput = throughput * weight;
 
             // Russian Roulette
@@ -165,6 +182,6 @@ class Camera
         auto pixel_offset = Hammersley(s, num_samples);
         auto pixel_center =
             viewport_upper_left + (j + pixel_offset.second) * pixel_delta_u + (i + pixel_offset.first) * pixel_delta_v;
-        return Ray(camera_center, pixel_center - camera_center);
+        return Ray(lookfrom, pixel_center - lookfrom);
     }
 };

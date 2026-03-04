@@ -1,18 +1,18 @@
 #pragma once
 
+#include <algorithm>
+
+#include "../rtweekend_defs.h"
 #include "material.h"
 #include "pbr.h"
-#include "rtweekend_defs.h"
-#include "vecmath.h"
-#include <algorithm>
-#include <limits>
 
 class PrincipledBRDF : public Material
 {
   public:
     PrincipledBRDF(const Vec3 &emission, const Vec3 &baseColor, float metallic, float subsurface, float specular,
                    float roughness, float specularTint, float anisotropic, float sheen, float sheenTint,
-                   float clearcoat, float clearcoatGloss) : Material(emission)
+                   float clearcoat, float clearcoatGloss)
+        : Material(emission)
     {
         this->baseColor = baseColor;
         this->subsurface = subsurface;
@@ -48,11 +48,13 @@ class PrincipledBRDF : public Material
         double NdotV = dot(N, V);
 
         // MIS
-        double FN = PBR::SchlickFresnel(NdotV); // approximation
+        double FN = PBR::SchlickFresnel(NdotV);      // approximation
         Color F_approx = lerp(F0, Color::one(), FN); // approximation
-        double specular_prob = PBR::Luminance(F_approx);
         double diffuse_prob = PBR::Luminance(baseColor * (Vec3::one() - F_approx)) * (1.0 - metallic);
+        double specular_prob = PBR::Luminance(F_approx);
         double clearcoat_prob = clearcoat * lerp(0.04, 1.0, FN);
+        // double specular_prob = 0.0;
+        // double clearcoat_prob = 0.0;
         double prob_sum = diffuse_prob + specular_prob + clearcoat_prob;
         diffuse_prob /= prob_sum;
         specular_prob /= prob_sum;
@@ -89,9 +91,9 @@ class PrincipledBRDF : public Material
         double pdf_diffuse = PBR::cosine_sample_hemisphere_pdf(NdotL);
         double pdf_specular = PBR::sample_GTR2_aniso_pdf(NdotH, dot(H, b1), dot(H, b2), ax, ay);
         double pdf_clearcoat = PBR::sample_GTR1_pdf(NdotH, a_clearcoat);
-        double LdotH_safe = std::max(LdotH, PBR::min_denom);
-        pdf_specular = pdf_specular / (4.0 * LdotH_safe);
-        pdf_clearcoat = pdf_clearcoat / (4.0 * LdotH_safe);
+        double four_LdotH_safe = 4.0 * std::max(LdotH, min_denom);
+        pdf_specular = pdf_specular / four_LdotH_safe;
+        pdf_clearcoat = pdf_clearcoat / four_LdotH_safe;
 
         pdf = diffuse_prob * pdf_diffuse + specular_prob * pdf_specular + clearcoat_prob * pdf_clearcoat;
         if (pdf <= 0.0)
@@ -109,7 +111,7 @@ class PrincipledBRDF : public Material
         double FH = PBR::SchlickFresnel(LdotH);
         Color Fs = lerp(F0, Color::one(), FH);
         double Gs;
-        Gs  = PBR::SmithG_GGX_aniso(NdotL, dot(L, b1), dot(L, b2), ax, ay);
+        Gs = PBR::SmithG_GGX_aniso(NdotL, dot(L, b1), dot(L, b2), ax, ay);
         Gs *= PBR::SmithG_GGX_aniso(NdotV, dot(V, b1), dot(V, b2), ax, ay);
 
         // sheen
@@ -124,9 +126,9 @@ class PrincipledBRDF : public Material
         // NOT IMPLEMENTED
         double ss = Fd;
 
-        f_r = (inv_pi * lerp(Fd, ss, subsurface) * baseColor + Fsheen) * (1.0 - metallic) * (Vec3::one() - Fs)
-             + Gs * Fs * Ds
-             + 0.25 * clearcoat * Gr * Fr * Dr * Vec3::one();
+        f_r = (inv_pi * lerp(Fd, ss, subsurface) * baseColor + Fsheen) * (1.0 - metallic) * (Vec3::one() - Fs) +
+              Fs * Gs * Ds + 0.25 * clearcoat * Gr * Fr * Dr * Vec3::one();
+        f_r *= NdotL;
 
         return true;
     }

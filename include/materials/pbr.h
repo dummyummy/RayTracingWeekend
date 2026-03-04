@@ -1,16 +1,13 @@
 #pragma once
 
-#include "rtweekend.h"
-#include "rtweekend_defs.h"
-#include "vecmath.h"
 #include <algorithm>
 #include <cmath>
-#include <limits>
+
+#include "../rtweekend_defs.h"
+#include "../rtweekend.h"
 
 namespace PBR
 {
-const double min_denom = std::numeric_limits<double>::epsilon();
-
 inline double Luminance(const Color &color)
 {
     return dot(Vec3(0.2126, 0.7152, 0.0722), color);

@@ -66,6 +66,14 @@ Vec3 reflect(const Vec3 &v, const Vec3 &n)
     return v - 2 * dot(v, n) * n;
 }
 
+Vec3 refract(const Vec3 &v, const Vec3 &n, double ior)
+{
+    double cos_theta = std::fmin(dot(-v, n), 1.0);
+    Vec3 r_out_perp = ior * (v + cos_theta * n);
+    Vec3 r_out_parallel = -std::sqrt(std::fabs(1.0 - r_out_perp.length_squared())) * n;
+    return r_out_perp + r_out_parallel;
+}
+
 // https://graphics.pixar.com/library/OrthonormalB/paper.pdf
 void Vec3::branchlessONB(const Vec3 &n, Vec3 &b1, Vec3 &b2)
 {

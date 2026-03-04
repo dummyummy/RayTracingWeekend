@@ -1,6 +1,5 @@
 #include <memory>
 
-#include "material.h"
 #include "stb_image.h"
 #include "stb_image_write.h"
 
@@ -8,9 +7,11 @@
 #include "hittable_list.h"
 #include "rtweekend.h"
 #include "sphere.h"
-#include "lambertian.h"
-#include "principled_brdf.h"
-#include "vecmath.h"
+#include "materials/material.h"
+#include "materials/lambertian.h"
+#include "materials/principled_brdf.h"
+#include "materials/light_mat.h"
+#include "materials/glass.h"
 
 int main(int argc, char *argv[])
 {
@@ -40,8 +41,10 @@ int main(int argc, char *argv[])
     cam.aspect_ratio = aspect_ratio;
     cam.image_width = image_width;
     cam.num_samples = image_spp;
-    cam.focal_length = 10.0;
-    cam.fov = 90.0;
+    cam.lookat = Vec3(0.0, 0.0, 0.0);
+    cam.lookfrom = Vec3(-0.5, 4.0, -1.0);
+    cam.enable_skybox = true;
+    cam.fov = 60.0;
 
     indicators::ProgressBar bar{
         indicators::option::BarWidth{50},
@@ -64,12 +67,14 @@ int main(int argc, char *argv[])
         }
     };
 
-    std::shared_ptr<Material> lambertian = std::make_shared<Lambertian>(Color(0.8, 0.8, 0.8), Vec3(0.0, 0.0, 0.0));
+    std::shared_ptr<Material> lambertian = std::make_shared<Lambertian>(Color(0.9, 0.1, 0.1), Vec3(0.0, 0.0, 0.0));
+    std::shared_ptr<Material> light_mat = std::make_shared<LightMat>(Vec3(1.0, 1.0, 1.0));
+    std::shared_ptr<Material> glass_mat = std::make_shared<Glass>(1.33);
 
-    std::shared_ptr<Material> principled1 = std::shared_ptr<PrincipledBRDF>(
+    std::shared_ptr<Material> principled_diffuse_grey = std::shared_ptr<PrincipledBRDF>(
         new PrincipledBRDF(
             Vec3(0.0, 0.0, 0.0), 
-            Vec3(0.8, 0.1, 0.1), 
+            Vec3(0.5, 0.5, 0.5), 
             0.0, 
             0.0, 
             0.0, 
@@ -83,7 +88,24 @@ int main(int argc, char *argv[])
         )
     );
 
-    std::shared_ptr<Material> principled2 = std::shared_ptr<PrincipledBRDF>(
+    std::shared_ptr<Material> principled_diffuse_red = std::shared_ptr<PrincipledBRDF>(
+        new PrincipledBRDF(
+            Vec3(0.0, 0.0, 0.0), 
+            Vec3(0.9, 0.1, 0.1), 
+            0.0, 
+            0.0, 
+            0.0, 
+            1.0, 
+            0.0, 
+            0.0, 
+            0.0, 
+            0.0, 
+            0.0, 
+            0.0
+        )
+    );
+
+    std::shared_ptr<Material> principled_glossy = std::shared_ptr<PrincipledBRDF>(
         new PrincipledBRDF(
             Vec3(0.0, 0.0, 0.0), 
             Vec3(0.1, 0.8, 0.1), 
@@ -100,14 +122,14 @@ int main(int argc, char *argv[])
         )
     );
 
-    std::shared_ptr<Material> principled3 = std::shared_ptr<PrincipledBRDF>(
+    std::shared_ptr<Material> principled_metal = std::shared_ptr<PrincipledBRDF>(
         new PrincipledBRDF(
             Vec3(0.0, 0.0, 0.0), 
             Vec3(0.1, 0.8, 0.4), 
             1.0, 
             0.0, 
             0.5, 
-            0.1, 
+            0.0, 
             0.0, 
             0.0, 
             0.0, 
@@ -118,10 +140,11 @@ int main(int argc, char *argv[])
     );
 
     HittableList scene;
-    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(-1.0, 0.0, -1.0), 0.5, principled1)));
-    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(0.0, 0.5, -2.0), 1.0, principled2)));
-    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(1.0, 0.0, -1.0), 0.5, principled3)));
-    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(0.0, -1000.5, -2.0), 1000.0, lambertian)));
+    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(-1.0, 0.5, 0.0), 0.5, principled_metal)));
+    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(0.0, 1.0, 1.0), 1.0, principled_diffuse_red)));
+    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(1.0, 0.5, 0.0), 0.5, glass_mat)));
+    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(-0.3, 1.5, -0.2), 0.3, glass_mat)));
+    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(0.0, -5000.0, 0.0), 5000.0, principled_diffuse_grey)));
 
     cam.initialize();
     auto image_data = cam.render(scene);

@@ -5,9 +5,9 @@
 #include <random>
 #include <utility>
 
-const double infinity = std::numeric_limits<double>::infinity();
-// const double epsilon = std::numeric_limits<double>::epsilon();
-const double epsilon = 1e-8;
+constexpr double infinity = std::numeric_limits<double>::infinity();
+constexpr double min_denom = std::numeric_limits<double>::epsilon();
+constexpr double epsilon = 1e-8;
 const double pi = std::acos(-1.0);
 const double inv_pi = 1.0 / pi;
 const double two_pi = 2.0 * pi;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "hittable.h"
-#include "vecmath.h"
+#include "../hittable.h"
+#include "../vecmath.h"
 
 class Material
 {
@@ -22,5 +22,6 @@ class Material
         return emission;
     }
 
+    // f_r equals BRDF * geometric factor
     virtual bool scatter(const Ray &ray_in, const HitRecord &rec, Ray &scattered, Color &f_r, double &pdf) const = 0;
 };
