@@ -1,7 +1,6 @@
 #pragma once
 
 #include "material.h"
-#include "pbr.h"
 
 class LightMat : public Material
 {

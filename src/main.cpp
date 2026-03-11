@@ -95,9 +95,9 @@ int main(int argc, char *argv[])
         new PrincipledBRDF(Vec3(0.0, 0.0, 0.0), Vec3(0.1, 0.8, 0.4), 1.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 
     HittableList scene;
-    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(-1.5, 0.5, 0.0), 0.5, principled_glossy)));
-    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(0.0, 1.0, 1.0), 1.0, principled_diffuse_clearcoat)));
-    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(1.5, 0.5, 0.0), 0.5, glass_mat)));
+    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(-1.5, 0.5, 0.0), Vec3(0.0, 0.1, 0.0), 0.5, principled_glossy)));
+    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(0.0, 1.0, 1.0), Vec3(0.0, 0.3, 0.0), 1.0, principled_diffuse_clearcoat)));
+    scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(1.5, 0.5, 0.0), Vec3(0.1, 0.1, 0.0), 0.5, glass_mat)));
     // scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(-0.3, 1.5, -0.2), 0.3, glass_mat)));
     scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(0.0, 1.8, 3.0), 1.5, light_mat)));
     scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(0.0, -5000.0, 0.0), 5000.0, principled_diffuse_grey)));

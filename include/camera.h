@@ -192,6 +192,6 @@ class Camera
         double dummy_p;
         auto ray_origin = defocus_angle <= 0.0 ? lookfrom :
             lookfrom + uniform_sample_disk(random_double(), random_double(), dummy_p, defocus_disk_u, defocus_disk_v);
-        return Ray(ray_origin, pixel_center - ray_origin);
+        return Ray(ray_origin, pixel_center - ray_origin, random_double());
     }
 };

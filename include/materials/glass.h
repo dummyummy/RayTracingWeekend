@@ -34,7 +34,7 @@ class Glass : public Material
             f_r = Color::one() * (1.0 - f);
             pdf = 1.0 - f;
         }
-        scattered = Ray(rec.p, ro);
+        scattered = Ray(rec.p, ro, ray_in.time());
         return true;
     }
 

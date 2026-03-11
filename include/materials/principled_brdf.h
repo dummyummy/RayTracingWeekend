@@ -99,7 +99,7 @@ class PrincipledBRDF : public Material
         if (pdf <= 0.0)
             return false;
 
-        scattered = Ray(rec.p, L);
+        scattered = Ray(rec.p, L, ray_in.time());
 
         // diffuse
         double FL = PBR::SchlickFresnel(NdotL), FV = PBR::SchlickFresnel(NdotV);

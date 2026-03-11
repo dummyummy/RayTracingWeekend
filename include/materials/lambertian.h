@@ -1,7 +1,8 @@
 #pragma once
 
-#include "material.h"
 #include "../sampling.h"
+#include "material.h"
+
 
 class Lambertian : public Material
 {
@@ -15,7 +16,7 @@ class Lambertian : public Material
         Vec3 b1, b2;
         Vec3::branchlessONB(rec.normal, b1, b2);
         Vec3 ro = cosine_sample_hemisphere(rec.normal, random_double(), random_double(), pdf, b1, b2);
-        scattered = Ray(rec.p, ro);
+        scattered = Ray(rec.p, ro, ray_in.time());
         f_r = albedo * inv_pi * dot(ro, rec.normal); // diffuse BRDF
         return true;
     }
