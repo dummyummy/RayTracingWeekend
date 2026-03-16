@@ -1,5 +1,6 @@
 #pragma once
 
+#include "aabb.h"
 #include "hittable.h"
 
 class HittableList : public Hittable
@@ -19,6 +20,7 @@ class HittableList : public Hittable
     void add(std::shared_ptr<Hittable> hittable)
     {
         hittables.push_back(hittable);
+        bbox = AABB(bbox, hittable->bounding_box());
     }
 
     bool hit(const Ray &ray, Interval t, HitRecord &rec) const override
@@ -36,6 +38,12 @@ class HittableList : public Hittable
         return hit_anything;
     }
 
+    AABB bounding_box() const override
+    {
+        return bbox;
+    }
+
   private:
     std::vector<std::shared_ptr<Hittable>> hittables;
+    AABB bbox;
 };

@@ -1,4 +1,7 @@
+#pragma once
+
 #include "rtweekend_defs.h"
+#include <cmath>
 
 class Interval
 {
@@ -11,6 +14,12 @@ class Interval
 
     Interval(double min, double max) : min(min), max(max)
     {
+    }
+
+    Interval(const Interval &a, const Interval &b)
+    {
+        min = std::fmin(a.min, b.min);
+        max = std::fmax(a.max, b.max);
     }
 
     double size() const
@@ -26,6 +35,20 @@ class Interval
     bool surrounds(double x) const
     {
         return min < x && x < max;
+    }
+
+    [[nodiscard]] Interval expanded(double delta) const 
+    {
+        auto padding = delta / 2.0;
+        return Interval(min - padding, max + padding);
+    }
+
+    Interval& expand(double delta)
+    {
+        auto padding = delta / 2.0;
+        min -= padding;
+        max += padding;
+        return *this;
     }
 
     double clamp(double x) const
