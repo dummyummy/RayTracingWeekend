@@ -7,8 +7,10 @@
 
 class AABB
 {
-  public:
+  private:
     Interval x, y, z;
+
+  public:
     AABB()
     {
     }
@@ -35,6 +37,13 @@ class AABB
             return y;
         return z;
     }
+    int longest_axis() const
+    {
+        if (x.size() > y.size())
+            return x.size() > z.size() ? 0 : 2;
+        return y.size() > z.size() ? 1 : 2;
+    }
+
     bool hit(const Ray &r, Interval ray_t) const
     {
         const Point3 &ray_origin = r.origin();
@@ -65,4 +74,6 @@ class AABB
 
         return true;
     }
+
+    static const AABB empty, universe;
 };

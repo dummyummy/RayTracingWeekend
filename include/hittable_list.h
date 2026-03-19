@@ -43,7 +43,8 @@ class HittableList : public Hittable
         return bbox;
     }
 
-  private:
     std::vector<std::shared_ptr<Hittable>> hittables;
+
+  private:
     AABB bbox;
 };

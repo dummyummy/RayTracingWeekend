@@ -1,10 +1,12 @@
 #include <memory>
 
+#include "rtweekend_defs.h"
 #include "stb_image.h"
 #include "stb_image_write.h"
 
 #include "camera.h"
 #include "hittable_list.h"
+#include "bvh_node.h"
 #include "materials/glass.h"
 #include "materials/lambertian.h"
 #include "materials/light_mat.h"
@@ -12,6 +14,7 @@
 #include "materials/principled_brdf.h"
 #include "rtweekend.h"
 #include "sphere.h"
+#include "utils/auto_timer.h"
 
 
 int main(int argc, char *argv[])
@@ -98,12 +101,26 @@ int main(int argc, char *argv[])
     scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(-1.5, 0.5, 0.0), Vec3(0.0, 0.1, 0.0), 0.5, principled_glossy)));
     scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(0.0, 1.0, 1.0), Vec3(0.0, 0.3, 0.0), 1.0, principled_diffuse_clearcoat)));
     scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(1.5, 0.5, 0.0), Vec3(0.1, 0.1, 0.0), 0.5, glass_mat)));
-    // scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(-0.3, 1.5, -0.2), 0.3, glass_mat)));
     scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(0.0, 1.8, 3.0), 1.5, light_mat)));
     scene.add(std::shared_ptr<Hittable>(new Sphere(Point3(0.0, -5000.0, 0.0), 5000.0, principled_diffuse_grey)));
 
+    // for (int i = 0; i < 100; i++)
+    // {
+    //     scene.add(std::shared_ptr<Hittable>(
+    //         new Sphere(Point3(random_double(-5.0, 5.0), 0.5, random_double(-5.0, 0.0)), 0.5, principled_glossy)));
+    // }
+
+    {
+        AutoTimer timer("BVHNode construction");
+        scene = HittableList(std::make_shared<BVHNode>(scene));
+    }
+
     cam.initialize();
-    auto image_data = cam.render(scene);
+    std::unique_ptr<uint8_t[]> image_data = nullptr;
+    {
+        AutoTimer timer("Render");
+        image_data = cam.render(scene);
+    }
 
     // Save the image as PNG
     if (stbi_write_png((output_name + ".png").c_str(), cam.image_width, cam.get_image_height(), cam.channel,
